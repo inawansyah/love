@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Cinta Untuk Riri ✨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;500;600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        desert: {
+                            base: '#FEF9EF',
+                            cream: '#FDE9D0',
+                            sand: '#E6A871',
+                            terracotta: '#C26D3C',
+                            brown: '#5C2E14',
+                        }
+                    },
+                    fontFamily: {
+                        handwriting: ['Caveat', 'cursive'],
+                        bubble: ['Fredoka', 'sans-serif'],
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #FEF9EF;
+            color: #5C2E14;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Ambient floating elements */
+        .floating-heart {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* 3D Envelope Animation */
+        .envelope-wrapper {
+            perspective: 1000px;
+        }
+
+        .envelope {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flap {
+            transform-origin: top;
+            transition: transform 0.6s ease-in-out 0.2s, z-index 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        .envelope.open .flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .letter-preview {
+            transition: transform 0.6s ease-in-out 0.4s;
+        }
+
+        .envelope.open .letter-preview {
+            transform: translateY(-80px) scale(1.05);
+        }
+
+        /* Glassmorphism card */
+        .desert-card {
+            background: rgba(253, 233, 208, 0.7);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(230, 168, 113, 0.5);
+            box-shadow: 0 10px 30px -5px rgba(92, 46, 20, 0.15);
+        }
+
+        /* Pulse glow for buttons */
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(194, 109, 60, 0.4);
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(194, 109, 60, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(194, 109, 60, 0.7); transform: scale(1.03); }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF9EF;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E6A871;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative select-none">
+
+    <!-- Floating Background Particles -->
+    <div id="particles-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Floating Audio Control Button -->
+    <button id="musicToggle" class="fixed top-4 right-4 z-50 bg-desert-cream hover:bg-desert-sand text-desert-brown border-2 border-desert-sand p-3 rounded-full shadow-lg transition-all transform hover:scale-110 flex items-center gap-2">
+        <i data-lucide="music" class="w-5 h-5 text-desert-terracotta animate-spin" style="animation-duration: 4s;"></i>
+        <span id="musicStatusText" class="text-xs font-semibold hidden sm:inline">Paint My Love</span>
+        <i id="muteIcon" data-lucide="volume-2" class="w-4 h-4 ml-1"></i>
+    </button>
+
+    <!-- Audio Element with Fallback Handler -->
+    <audio id="bgMusic" loop preload="auto">
+        <!-- Direct audio stream link for Paint My Love - MLTR -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-wedding-11622.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex items-center justify-center p-4 sm:p-6 z-10 my-auto">
+
+        <!-- SCREEN 1: ENVELOPE / GIFT BOX -->
+        <div id="envelopeScreen" class="w-full max-w-sm sm:max-w-md flex flex-col items-center justify-center transition-all duration-700">
+            <div class="text-center mb-6 animate-bounce">
+                <span class="inline-block bg-desert-cream border border-desert-sand px-4 py-1.5 rounded-full text-desert-terracotta text-sm font-semibold shadow-sm mb-2">
+                    ✨ Ada Pesan Rahasia Untukmu! ✨
+                </span>
+                <h1 class="font-handwriting text-4xl sm:text-5xl font-bold text-desert-brown drop-shadow-sm">
+                    Khusus Untuk Riri 💕
+                </h1>
+            </div>
+
+            <!-- Interactive Envelope -->
+            <div id="envelopeCard" onclick="openEnvelope()" class="envelope-wrapper w-full cursor-pointer transform hover:scale-105 transition-transform duration-300">
+                <div id="envelopeObj" class="envelope w-full bg-desert-sand rounded-2xl p-6 shadow-2xl relative border-2 border-desert-terracotta overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
+                    
+                    <!-- Decorative Desert Patterns -->
+                    <div class="absolute top-2 left-2 text-desert-terracotta opacity-30">🌵</div>
+                    <div class="absolute bottom-2 right-2 text-desert-terracotta opacity-30">🐪</div>
+                    <div class="absolute top-2 right-2 text-desert-terracotta opacity-30">✨</div>
+                    <div class="absolute bottom-2 left-2 text-desert-terracotta opacity-30">🌸</div>
+
+                    <!-- Envelope Seal / Stamp -->
+                    <div class="w-20 h-20 bg-desert-terracotta rounded-full flex items-center justify-center shadow-lg border-4 border-desert-cream mb-4 animate-pulse">
+                        <i data-lucide="heart" class="w-10 h-10 text-desert-cream fill-desert-cream"></i>
+                    </div>
+
+                    <button class="btn-glow bg-desert-terracotta text-desert-base font-bubble px-6 py-2.5 rounded-full text-lg sm:text-xl font-bold border-2 border-desert-cream flex items-center gap-2 shadow-md hover:bg-desert-brown transition-colors">
+                        <i data-lucide="mail-open" class="w-5 h-5"></i>
+                        Buka Ya 💌
+                    </button>
+                    
+                    <p class="text-xs text-desert-brown mt-3 font-medium opacity-80">Klik amplop ini untuk membuka pesan</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- SCREEN 2: MAIN LETTER & PROPOSAL (Hidden initially) -->
+        <div id="letterScreen" class="w-full max-w-lg hidden transform opacity-0 scale-90 transition-all duration-700">
+            <div class="desert-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                
+                <!-- Background Decorative Icons -->
+                <div class="absolute -top-6 -right-6 text-desert-sand opacity-20 text-8xl">🌵</div>
+                <div class="absolute -bottom-8 -left-8 text-desert-sand opacity-20 text-8xl">💖</div>
+
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-14 h-14 bg-desert-cream rounded-full border-2 border-desert-sand text-desert-terracotta mb-2 shadow-inner">
+                        <i data-lucide="sparkles" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="font-handwriting text-4xl sm:text-5xl font-bold text-desert-brown">
+                        Halo Riri ... 💕
+                    </h2>
+                    <p class="text-xs text-desert-terracotta font-semibold tracking-wider uppercase mt-1">Dengarin lagu manis ini ya ✨</p>
+                </div>
+
+                <!-- Letter Body Text -->
+                <div class="bg-desert-base/80 backdrop-blur-sm rounded-2xl p-5 border border-desert-sand/40 text-desert-brown space-y-3 text-sm sm:text-base leading-relaxed font-sans shadow-sm">
+                    <p>
+                        Sejak mengenalmu, rasanya hariku selalu terasa lebih hangat dan penuh warna. Senyummu selalu berhasil mencuri perhatian dan membuat hatiku tenang. ✨
+                    </p>
+                    <p>
+                        I Like U and I ❤️ U
+                    </p>
+                    <p class="font-semibold text-desert-terracotta text-center pt-2 font-bubble text-base sm:text-lg">
+                        "Maukah kamu jadi pacarku dan jalan bareng menempuh petualangan manis ini denganku?" 🌹
+                    </p>
+                </div>
+
+                <!-- Action Buttons Container -->
+                <div class="mt-8 relative min-h-[140px] flex flex-col items-center justify-center gap-4">
+                    
+                    <!-- YES BUTTON -->
+                    <button id="yesBtn" onclick="acceptProposal()" class="btn-glow w-full sm:w-3/4 bg-desert-terracotta hover:bg-desert-brown text-desert-base font-bubble py-3.5 px-6 rounded-2xl text-lg sm:text-xl font-bold transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3 border-2 border-desert-cream shadow-xl">
+                        <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                        MAU 💕
+                    </button>
+
+                    <!-- PLAYFUL NO BUTTON -->
+                    <button id="noBtn" class="bg-desert-cream text-desert-brown border-2 border-desert-sand font-bubble py-2.5 px-6 rounded-xl text-sm font-semibold transition-all duration-150 shadow-md flex items-center gap-2">
+                        <i data-lucide="frown" class="w-4 h-4 text-desert-terracotta"></i>
+                        Enggak Dulu deh 😜
+                    </button>
+
+                </div>
+
+                <!-- Cute Dynamic Hint/Reaction Message -->
+                <p id="funnyHint" class="text-center text-xs font-semibold text-desert-terracotta h-4 mt-2 transition-opacity opacity-0">
+                    Eits! Gak bisa diklik kan? Pilih "MAU BANGET" dong! 🤪
+                </p>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-4 text-xs font-medium text-desert-brown/70 z-10">
+        Dibuat penuh cinta khusus untuk <span class="font-bold text-desert-terracotta">Riri</span> ✨
+    </footer>
+
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Audio & Music Logic
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const muteIcon = document.getElementById('muteIcon');
+        let isPlaying = false;
+        let synthAudioContext = null;
+
+        // Fallback Synthesizer in case external mp3 fails to play or blocked
+        function playFallbackRomanticMelody() {
+            try {
+                if (!synthAudioContext) {
+                    synthAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (synthAudioContext.state === 'suspended') {
+                    synthAudioContext.resume();
+                }
+
+                // Simple soft chord progression synth sequence
+                const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23]; // C, E, G, C5, A, F
+                let noteIndex = 0;
+
+                setInterval(() => {
+                    if (!isPlaying) return;
+                    const osc = synthAudioContext.createOscillator();
+                    const gain = synthAudioContext.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(notes[noteIndex], synthAudioContext.currentTime);
+                    
+                    gain.gain.setValueAtTime(0.05, synthAudioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, synthAudioContext.currentTime + 1.2);
+
+                    osc.connect(gain);
+                    gain.connect(synthAudioContext.destination);
+
+                    osc.start();
+                    osc.stop(synthAudioContext.currentTime + 1.2);
+
+                    noteIndex = (noteIndex + 1) % notes.length;
+                }, 800);
+            } catch (e) {
+                console.log("Audio synth not supported");
+            }
+        }
+
+        function playMusic() {
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                muteIcon.setAttribute('data-lucide', 'volume-2');
+                lucide.createIcons();
+            }).catch(err => {
+                console.log("Direct MP3 play blocked/failed, playing fallback synth");
+                isPlaying = true;
+                playFallbackRomanticMelody();
+            });
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                muteIcon.setAttribute('data-lucide', 'volume-x');
+            } else {
+                playMusic();
+            }
+            lucide.createIcons();
+        }
+
+        musicToggle.addEventListener('click', toggleMusic);
+
+        // Open Envelope Action
+        function openEnvelope() {
+            const envelopeScreen = document.getElementById('envelopeScreen');
+            const letterScreen = document.getElementById('letterScreen');
+            const envelopeObj = document.getElementById('envelopeObj');
+
+            // Play Music
+            playMusic();
+
+            // Animate Envelope opening
+            envelopeObj.classList.add('open');
+            
+            setTimeout(() => {
+                envelopeScreen.classList.add('opacity-0', '-translate-y-12');
+                setTimeout(() => {
+                    envelopeScreen.classList.add('hidden');
+                    letterScreen.classList.remove('hidden');
+                    
+                    // Trigger fade & scale in for Letter
+                    setTimeout(() => {
+                        letterScreen.classList.remove('opacity-0', 'scale-90');
+                        letterScreen.classList.add('opacity-100', 'scale-100');
+                    }, 50);
+                }, 500);
+            }, 600);
+        }
+
+        // Playful Runner NO Button Logic
+        const noBtn = document.getElementById('noBtn');
+        const funnyHint = document.getElementById('funnyHint');
+
+        const funnyMessages = [
+            "Eits! Gak bisa diklik kan? 🤪",
+            "Ups! Tombolnya pemalu nih! 🙈",
+            "Yakin mau pencet 'Enggak'? Coba lagi! 😜",
+            "Tombol NO-nya lari terus lho! 💕",
+            "Hayo mau kabur ke mana! Klik YES aja! ✨",
+            "Jangan dicoba terus, hatiku sedih! 🥺"
+        ];
+
+        function moveNoButton() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Button dimension estimate
+            const btnWidth = noBtn.offsetWidth || 140;
+            const btnHeight = noBtn.offsetHeight || 40;
+
+            // Safe screen margins
+            const padding = 20;
+
+            // Compute random position within current viewport
+            const maxX = viewportWidth - btnWidth - padding;
+            const maxY = viewportHeight - btnHeight - padding;
+
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+            // Set absolute positioning when first moved
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
+            noBtn.style.zIndex = '999';
+
+            // Show funny message hint
+            const randomMsg = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
+            funnyHint.innerText = randomMsg;
+            funnyHint.classList.remove('opacity-0');
+            funnyHint.classList.add('opacity-100');
+        }
+
+        // Support both Desktop Hover and Mobile Touch
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // Proposal Accepted (YES Clicked)
+        function acceptProposal() {
+            // Trigger Confetti Explosion
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#C26D3C', '#E6A871', '#FDE9D0', '#5C2E14', '#FF69B4']
+            });
+
+            // Extra burst after short delay
+            setTimeout(() => {
+                confetti({
+                    particleCount: 80,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#C26D3C', '#E6A871', '#FDE9D0']
+                });
+                confetti({
+                    particleCount: 80,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#C26D3C', '#E6A871', '#FDE9D0']
+                });
+            }, 250);
+
+            // Send WhatsApp Message after delay
+            setTimeout(() => {
+                const phoneNumber = "081802251669";
+                const message = encodeURIComponent("Iya aku mau jadi pacarmu");
+                const waUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+                
+                // Open WhatsApp link in new window or current tab
+                window.location.href = waUrl;
+            }, 1200);
+        }
+
+        function createFloatingParticles() {
+            const container = document.getElementById('particles-container');
+            const icons = ['❤️', '💖', '✨', '🌸', '🌵', '💕'];
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'floating-heart text-sm sm:text-base';
+                particle.innerText = icons[Math.floor(Math.random() * icons.length)];
+                
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${6 + Math.random() * 8}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.opacity = Math.random() * 0.7 + 0.3;
+
+                container.appendChild(particle);
+            }
+        }
+
+        // Initialize particles on load
+        window.addEventListener('DOMContentLoaded', () => {
+            createFloatingParticles();
+        });
+    </script>
+</body>
+</html>
